@@ -1,5 +1,6 @@
 # Traffic Detection and Vehicle Tracking System
 
+
 ## Overview
 
 This project is a computer vision–based traffic monitoring system built using Python, YOLOv8, OpenCV, and EasyOCR.
