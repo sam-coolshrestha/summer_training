@@ -71,11 +71,21 @@ while True:
         boxes = results[0].boxes.xyxy.cpu().numpy()
         ids = results[0].boxes.id.cpu().numpy()
 
-        for box, track_id in zip(boxes, ids):
+        classes = results[0].boxes.cls.cpu().numpy()
+        class_names = vehicle_model.names
+
+
+        for i, (box, track_id) in enumerate(zip(boxes, ids)):
 
             x1,y1,x2,y2 = map(int, box)
+
+            cls_id = int(classes[i])
+            vehicle_type = class_names[cls_id]
+
             center_y=int((y1 + y2) / 2)
+
             previous_y=vehicle_positions.get(track_id, center_y)
+
             vehicle_positions[track_id] = center_y
 
 
@@ -102,9 +112,10 @@ while True:
                     print(f"Vehicle {track_id} | Plate: {plate_text} | Time: {timestamp}")
 
                     records.append({
-                        "Vehicle_ID": int(track_id),
-                        "Plate_Number": plate_text,
-                        "Timestamp": timestamp
+                    "Vehicle_ID": int(track_id),
+                    "Vehicle_Type": vehicle_type,
+                    "Plate_Number": plate_text,
+                    "Timestamp": timestamp
                     })
 
     out.write(annotated_frame)
