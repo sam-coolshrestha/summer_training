@@ -1,298 +1,188 @@
-# Traffic Detection and Vehicle Tracking System
-
+# AI-Based Traffic Analytics System
 
 ## Overview
 
-This project is a computer vision–based traffic monitoring system built using Python, YOLOv8, OpenCV, and EasyOCR.
-The system processes a traffic video, detects and tracks vehicles, identifies when vehicles cross a predefined line, extracts possible license plate text using OCR, and stores the results in a CSV file.
+This project is an AI-powered traffic analytics and vehicle monitoring system built using YOLOv8, OpenCV, EasyOCR, ByteTrack, and Streamlit.
 
-The final output includes:
-
-* An annotated output video with tracked vehicles
-* Vehicle crossing records with timestamps
-* Detected license plate text (when readable)
+The system performs real-time vehicle detection, tracking, speed estimation, trajectory analysis, and license plate recognition from uploaded traffic videos. It also provides an interactive dashboard for traffic analytics visualization.
 
 ---
 
 # Features
 
 * Real-time vehicle detection using YOLOv8
-* Multi-object tracking using ByteTrack
-* Line-crossing detection
-* License plate text extraction using EasyOCR
+* Multi-object vehicle tracking using ByteTrack
+* Vehicle trajectory visualization
+* Vehicle speed estimation
+* Direction analysis
+* Acceleration estimation
+* Vehicle type classification
+* License plate recognition using EasyOCR
+* Line crossing detection
 * CSV report generation
-* Processed output video generation
+* Interactive Streamlit dashboard
+* Video upload and automatic processing
+* Vehicle analytics filtering and search
 
 ---
 
 # Technologies Used
 
 * Python
+* YOLOv8
 * OpenCV
-* YOLOv8 (Ultralytics)
 * EasyOCR
+* Streamlit
 * Pandas
 * ByteTrack
 
 ---
 
-# Project Workflow
+# Project Structure
 
-## 1. Install Required Libraries
-
-The notebook first installs the required dependencies:
-
-```python
-!pip install ultralytics
-!pip install easyocr
-!pip install supervision
-```
-
-These libraries are used for:
-
-* Object detection
-* OCR text recognition
-* Video processing
-* Object tracking
-
----
-
-# 2. Upload and Read Video
-
-The traffic video is uploaded and loaded using OpenCV.
-
-```python
-cap = cv2.VideoCapture(video_path)
-```
-
-The program extracts:
-
-* Frame width
-* Frame height
-* FPS (frames per second)
-
-These values are later used to generate the output video.
-
----
-
-# 3. Load YOLO Model
-
-```python
-vehicle_model = YOLO("yolov8n.pt")
-```
-
-The YOLOv8 Nano model is used to detect vehicles in each video frame.
-
-The model identifies objects such as:
-
-* Cars
-* Trucks
-* Motorcycles
-* Buses
-
----
-
-# 4. Vehicle Tracking
-
-```python
-results = vehicle_model.track(
-    frame,
-    persist=True,
-    tracker="bytetrack.yaml"
-)
-```
-
-ByteTrack assigns a unique tracking ID to each vehicle so the same vehicle can be followed across multiple frames.
-
-Example:
-
-| Vehicle | Tracking ID |
-| ------- | ----------- |
-| Car 1   | 5           |
-| Truck   | 9           |
-
-This prevents counting the same vehicle multiple times.
-
----
-
-# 5. Draw Detection Line
-
-```python
-LINE_Y = 400
-```
-
-A horizontal line is drawn on the video frame.
-
-```python
-cv2.line(...)
-```
-
-This line acts as a checkpoint for vehicle counting.
-
----
-
-# 6. Detect Line Crossing
-
-The program monitors the vertical center position of each vehicle.
-
-```python
-if previous_y < LINE_Y and center_y >= LINE_Y:
-```
-
-When a vehicle crosses the line:
-
-* It is counted once
-* OCR processing starts
-* Vehicle details are stored
-
-The `crossed_ids` set ensures duplicate counting does not occur.
-
----
-
-# 7. License Plate Recognition
-
-The lower half of the detected vehicle is cropped:
-
-```python
-lower_half = vehicle_crop[h//2:h, :]
-```
-
-EasyOCR scans the cropped region:
-
-```python
-ocr_result = reader.readtext(lower_half)
-```
-
-The detected text is assumed to be the plate number.
-
-If no text is detected:
-
-```python
-plate_text = "UNKNOWN"
+```bash
+summer_training/
+│
+├── app.py
+├── main.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+│
+├── models/
+│   └── yolov8n.pt
+│
+├── videos/
+│   └── uploaded_video.mp4
+│
+├── outputs/
+│   ├── vehicle_records.csv
+│   └── final_output.mp4
 ```
 
 ---
 
-# 8. Save Vehicle Records
+# How It Works
 
-For every detected crossing, the following data is stored:
+1. User uploads a traffic video through the Streamlit dashboard.
+2. The uploaded video is saved locally.
+3. YOLOv8 detects vehicles frame-by-frame.
+4. ByteTrack assigns unique IDs to vehicles.
+5. Vehicle trajectories and movement paths are tracked.
+6. Speed, acceleration, and direction are estimated.
+7. EasyOCR extracts vehicle number plates.
+8. Processed results are saved into a CSV report.
+9. Dashboard visualizes analytics and processed video output.
 
-* Vehicle ID
-* Plate Number
-* Timestamp
+---
 
-Example:
+# Dashboard Features
 
-| Vehicle_ID | Plate_Number | Timestamp           |
-| ---------- | ------------ | ------------------- |
-| 3          | UK07AB1234   | 2026-05-29 14:32:11 |
+* Vehicle type filtering
+* Plate number search
+* Vehicle speed analytics
+* Vehicle distribution charts
+* Fastest vehicle analysis
+* CSV report download
+* Processed video playback
 
-The records are saved into:
+---
 
-```python
-vehicle_records.csv
+# Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/your-username/your-repository-name.git
+cd your-repository-name
+```
+
+## Install Dependencies
+
+```bash
+pip install -r requirements.txt
 ```
 
 ---
 
-# 9. Generate Output Video
+# Run the Application
 
-The processed video with:
+## Start Streamlit Dashboard
 
-* Bounding boxes
-* Tracking IDs
-* Detection line
-
-is saved as:
-
-```python
-final_output.mp4
+```bash
+streamlit run app.py
 ```
+
+## Process Uploaded Video
+
+Upload a video from the dashboard and click:
+
+```text
+Process Video
+```
+
+The system will automatically:
+
+* process the video,
+* generate analytics,
+* save CSV reports,
+* generate processed output video.
 
 ---
 
 # Output Files
 
-| File                  | Description              |
-| --------------------- | ------------------------ |
-| `final_output.mp4`    | Processed traffic video  |
-| `vehicle_records.csv` | Vehicle crossing records |
-| `traffic.mp4`         | Input video              |
-| `yolov8n.pt`          | YOLO model weights       |
+## CSV Report
 
----
+Generated at:
 
-# How to Run the Project
-
-## Step 1: Install Dependencies
-
-```bash
-pip install ultralytics easyocr supervision opencv-python pandas
+```text
+outputs/vehicle_records.csv
 ```
 
+Contains:
+
+* Vehicle ID
+* Vehicle Type
+* Speed
+* Direction
+* Acceleration
+* Plate Number
+* Timestamp
+
 ---
 
-## Step 2: Download YOLO Model
+## Processed Video
 
-```bash
-wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt
+Generated at:
+
+```text
+outputs/final_output.mp4
 ```
 
----
+Includes:
 
-## Step 3: Add Input Video
-
-Place your traffic video in the project directory.
-
-Example:
-
-```python
-video_path = "traffic.mp4"
-```
-
----
-
-## Step 4: Run the Notebook
-
-Execute all notebook cells sequentially.
-
----
-
-# Applications
-
-This system can be used in:
-
-* Smart traffic management
-* Toll booth automation
-* Parking systems
-* Vehicle monitoring
-* Security surveillance
-* Traffic analytics
-
----
-
-# Limitations
-
-* OCR accuracy depends on video quality
-* Small or blurred license plates may not be detected
-* Night-time videos may reduce detection accuracy
-* Current implementation assumes the plate is in the lower half of the vehicle
+* Bounding boxes
+* Vehicle IDs
+* Speed visualization
+* Trajectory paths
+* Detection overlays
 
 ---
 
 # Future Improvements
 
-Possible enhancements include:
-
-* Dedicated license plate detection model
-* Speed estimation
-* Vehicle counting dashboard
-* Real-time webcam support
+* Overspeed violation detection
+* Lane change detection
+* Traffic heatmaps
+* Live webcam support
+* Red-light violation detection
+* Helmet detection
+* Cloud deployment
 * Database integration
-* Automatic violation detection
 
 ---
 
-# Conclusion
+# Author
 
-This project demonstrates how deep learning and computer vision can be combined to build an automated traffic monitoring system. It integrates vehicle detection, tracking, OCR, and data logging into a complete end-to-end workflow suitable for smart transportation applications.
+Samridhi Kulshrestha
