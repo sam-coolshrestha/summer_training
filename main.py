@@ -19,7 +19,7 @@ vehicle_model = YOLO("yolov8n.pt")
 reader = easyocr.Reader(['en'])
 
 
-video_path = "videos/traffic.mp4"
+video_path = "videos/uploaded_video.mp4"
 
 cap = cv2.VideoCapture(video_path)
 

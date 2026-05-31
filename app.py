@@ -1,7 +1,35 @@
 import streamlit as st
 import pandas as pd
+import subprocess
+
 
 st.title("Traffic Analytics Dashboard")
+
+uploaded_file = st.file_uploader(
+"Upload Traffic Video",
+type=["mp4", "avi", "mov"]
+)
+
+if uploaded_file is not None:
+
+    st.success("Video Uploaded Successfully")
+    st.write(uploaded_file.name)
+
+if uploaded_file is not None:
+
+    with open(
+        "videos/uploaded_video.mp4",
+        "wb"
+    ) as f:
+
+
+        f.write(uploaded_file.read())
+
+    if st.button("Process Video"):
+
+        with st.spinner("Processing video... Please wait"):
+            subprocess.run(["python", "main.py"])
+            st.success("Video Processing Complete")
 
 df = pd.read_csv("outputs/vehicle_records.csv")
 
