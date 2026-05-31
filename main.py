@@ -38,10 +38,17 @@ out = cv2.VideoWriter(
     fps,
     (width, height)
 )
+
 LINE_Y = 400
+
 vehicle_positions = {}
+
+vehicle_paths  = {}
+
 crossed_ids = set()
+
 records = []
+
 while True:
 
     ret, frame = cap.read()
@@ -82,13 +89,28 @@ while True:
             cls_id = int(classes[i])
             vehicle_type = class_names[cls_id]
 
+            center_x=int((x1 + x2) / 2)
             center_y=int((y1 + y2) / 2)
 
             previous_y=vehicle_positions.get(track_id, center_y)
 
             vehicle_positions[track_id] = center_y
 
+            if track_id not in vehicle_paths:
+                vehicle_paths[track_id] = []
 
+            vehicle_paths[track_id].append((center_x, center_y))
+
+            for j in range(1, len(vehicle_paths[track_id])):
+
+                cv2.line(
+                    annotated_frame,
+                    vehicle_paths[track_id][j - 1],
+                    vehicle_paths[track_id][j],
+                    (255, 0, 0),
+                    2
+                )
+                
             if previous_y < LINE_Y and center_y >= LINE_Y:
 
                 if track_id not in crossed_ids:
