@@ -25,15 +25,16 @@ vehicle_model = YOLO("yolov8n.pt")
 reader = easyocr.Reader(['en'])
 
 
-video_path = "traffic.mp4"
+video_path = "videos/traffic.mp4"
 
 cap = cv2.VideoCapture(video_path)
 
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
+
 out = cv2.VideoWriter(
-    "final_output.mp4",
+    "outputs/final_output.mp4",
     cv2.VideoWriter_fourcc(*'mp4v'),
     fps,
     (width, height)
@@ -161,10 +162,11 @@ while True:
                     print(f"Vehicle {track_id} | Plate: {plate_text} | Time: {timestamp}")
 
                     records.append({
-                    "Vehicle_ID": int(track_id),
-                    "Vehicle_Type": vehicle_type,
-                    "Plate_Number": plate_text,
-                    "Timestamp": timestamp
+                        "Vehicle_ID": int(track_id),
+                        "Vehicle_Type": vehicle_type,
+                        "Speed": int(speed),
+                        "Plate_Number": plate_text,
+                        "Timestamp": timestamp
                     })
 
     out.write(annotated_frame)
@@ -174,18 +176,18 @@ out.release()
 
 
 df = pd.DataFrame(records)
-df.to_csv("vehicle_records.csv", index=False)
+df.to_csv("outputs/vehicle_records.csv", index=False)
 print("FINAL PROCESS COMPLETE")
 
 from IPython.display import Video
 
-Video("final_output.mp4", embed=True)
+Video("outputs/final_output.mp4", embed=True)
 
 from google.colab import files
 
-files.download("vehicle_records.csv")
+files.download("outputs/vehicle_records.csv")
 
 from google.colab import files
 
-files.download("final_output.mp4")
+files.download("outputs/final_output.mp4")
 
