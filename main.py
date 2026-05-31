@@ -45,6 +45,8 @@ vehicle_positions = {}
 
 vehicle_paths  = {}
 
+previous_centers={}
+
 crossed_ids = set()
 
 records = []
@@ -92,9 +94,24 @@ while True:
             center_x=int((x1 + x2) / 2)
             center_y=int((y1 + y2) / 2)
 
+            speed=0
+
             previous_y=vehicle_positions.get(track_id, center_y)
 
+           
             vehicle_positions[track_id] = center_y
+
+            if track_id in previous_centers:
+                prev_center_x, prev_center_y = previous_centers[track_id]
+
+                dx=center_x - prev_center_x
+                dy=center_y - prev_center_y
+
+                distance=(dx**2 + dy**2)**0.5
+
+                speed=distance * fps * 0.1
+
+            previous_centers[track_id]=(center_x, center_y)
 
             if track_id not in vehicle_paths:
                 vehicle_paths[track_id] = []
@@ -109,7 +126,17 @@ while True:
                     vehicle_paths[track_id][j],
                     (255, 0, 0),
                     2
-                )
+                        )
+        
+            cv2.putText(
+                        annotated_frame,
+                        f"{int(speed)} km/h",
+                        (x1, y1 - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6,
+                        (0, 255, 255),
+                        2
+                        )
                 
             if previous_y < LINE_Y and center_y >= LINE_Y:
 
