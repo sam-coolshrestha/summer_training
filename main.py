@@ -7,12 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1soG_s-9mahdThmANVpm2uHTtTQPMzO38
 """
 
-!pip install ultralytics
-!pip install easyocr
-!pip install supervision
-
-from google.colab import files
-uploaded =files.upload()
 
 from ultralytics import YOLO
 import cv2
@@ -179,15 +173,4 @@ df = pd.DataFrame(records)
 df.to_csv("outputs/vehicle_records.csv", index=False)
 print("FINAL PROCESS COMPLETE")
 
-from IPython.display import Video
-
-Video("outputs/final_output.mp4", embed=True)
-
-from google.colab import files
-
-files.download("outputs/vehicle_records.csv")
-
-from google.colab import files
-
-files.download("outputs/final_output.mp4")
 
