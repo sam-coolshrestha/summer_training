@@ -82,6 +82,12 @@ with col5:
     len(df[df["Vehicle_Type"] == "truck"])
     )
 
+with col6:
+    st.metric(
+    "Overspeed Violations",
+    len(df[df["Violation"] == "Overspeeding"])
+    )
+
 
 vehicle_counts = df["Vehicle_Type"].value_counts()
 

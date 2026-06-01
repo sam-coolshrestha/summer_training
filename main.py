@@ -35,6 +35,8 @@ out = cv2.VideoWriter(
 )
 
 LINE_Y = 400
+SPEED_LIMIT=60
+
 
 vehicle_positions = {}
 
@@ -90,10 +92,9 @@ while True:
             center_y=int((y1 + y2) / 2)
 
             speed=0
-
+            violation="Normal"
             previous_y=vehicle_positions.get(track_id, center_y)
 
-           
             vehicle_positions[track_id] = center_y
 
             if track_id in previous_centers:
@@ -105,6 +106,9 @@ while True:
                 distance=(dx**2 + dy**2)**0.5
 
                 speed=distance * fps * 0.1
+
+                if speed > SPEED_LIMIT:
+                    violation="Overspeeding"
 
             previous_centers[track_id]=(center_x, center_y)
 
@@ -122,14 +126,20 @@ while True:
                     (255, 0, 0),
                     2
                         )
-        
+
+            color = (0, 255, 255)
+
+            if violation == "Overspeeding":
+                color = (0, 0, 255)
+
+
             cv2.putText(
                         annotated_frame,
-                        f"{int(speed)} km/h",
+                        f"{int(speed)} km/h | {violation}",
                         (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.6,
-                        (0, 255, 255),
+                        color,
                         2
                         )
                 
@@ -159,6 +169,7 @@ while True:
                         "Vehicle_ID": int(track_id),
                         "Vehicle_Type": vehicle_type,
                         "Speed": int(speed),
+                        "Violation": violation,
                         "Plate_Number": plate_text,
                         "Timestamp": timestamp
                     })
