@@ -1,6 +1,6 @@
 *.pt
 *.mp4
-**pycache**/
 outputs/
-.env
+videos/
+**pycache**/
 .ipynb_checkpoints/
