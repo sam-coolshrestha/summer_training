@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import subprocess
-
+import os
 
 st.title("Traffic Analytics Dashboard")
 
@@ -126,9 +126,14 @@ st.download_button(
 
 st.subheader("Processed Traffic Video")
 
-video_file = open(
-    "outputs/final_output.mp4",
-    "rb"
-)
+st.subheader("Processed Traffic Video")
 
-st.video(video_file.read())
+video_path = "outputs/final_output.mp4"
+
+if os.path.exists(video_path):
+
+    video_file = open(video_path, "rb")
+    st.video(video_file.read())
+
+else:
+    st.warning("No processed video available yet.")
