@@ -1,5 +1,6 @@
 # AI-Based Traffic Analytics System
 
+
 ## Overview
 
 This project is an AI-powered traffic analytics and vehicle monitoring system built using YOLOv8, OpenCV, EasyOCR, ByteTrack, and Streamlit.
