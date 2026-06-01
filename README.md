@@ -1,33 +1,30 @@
-# AI-Based Traffic Analytics System
+# IntelliTraffic AI 
 
+AI-powered intelligent traffic surveillance and analytics system built using YOLOv8, EasyOCR, OpenCV, and Streamlit.
 
-## Overview
+##  Live Demo
 
-This project is an AI-powered traffic analytics and vehicle monitoring system built using YOLOv8, OpenCV, EasyOCR, ByteTrack, and Streamlit.
-
-The system performs real-time vehicle detection, tracking, speed estimation, trajectory analysis, and license plate recognition from uploaded traffic videos. It also provides an interactive dashboard for traffic analytics visualization.
+https://intellitraffic-ai.streamlit.app/
 
 ---
 
-# Features
+#  Features
 
 * Real-time vehicle detection using YOLOv8
-* Multi-object vehicle tracking using ByteTrack
-* Vehicle trajectory visualization
+* Vehicle tracking with ByteTrack
 * Vehicle speed estimation
-* Direction analysis
-* Acceleration estimation
-* Vehicle type classification
-* License plate recognition using EasyOCR
-* Line crossing detection
-* CSV report generation
-* Interactive Streamlit dashboard
-* Video upload and automatic processing
-* Vehicle analytics filtering and search
+* License plate extraction using EasyOCR
+* Overspeeding detection and violation analysis
+* Vehicle trajectory tracking
+* Interactive Streamlit analytics dashboard
+* Vehicle filtering and plate number search
+* CSV report generation and download
+* Processed traffic video playback
+* Upload and process custom traffic videos
 
 ---
 
-# Technologies Used
+# 🛠️ Tech Stack
 
 * Python
 * YOLOv8
@@ -35,70 +32,48 @@ The system performs real-time vehicle detection, tracking, speed estimation, tra
 * EasyOCR
 * Streamlit
 * Pandas
-* ByteTrack
+* NumPy
 
 ---
 
-# Project Structure
+#  Project Structure
 
 ```bash
 summer_training/
+│
+├── app/
+│   ├── analytics.py
+│   ├── detection.py
+│   ├── ocr.py
+│   ├── tracking.py
+│   └── utils.py
+│
+├── outputs/
+│   ├── final_output.mp4
+│   └── vehicle_records.csv
+│
+├── videos/
+│   └── uploaded_video.mp4
 │
 ├── app.py
 ├── main.py
 ├── requirements.txt
 ├── README.md
-├── .gitignore
-│
-├── models/
-│   └── yolov8n.pt
-│
-├── videos/
-│   └── uploaded_video.mp4
-│
-├── outputs/
-│   ├── vehicle_records.csv
-│   └── final_output.mp4
+└── .gitignore
 ```
 
 ---
 
-# How It Works
+#  Installation
 
-1. User uploads a traffic video through the Streamlit dashboard.
-2. The uploaded video is saved locally.
-3. YOLOv8 detects vehicles frame-by-frame.
-4. ByteTrack assigns unique IDs to vehicles.
-5. Vehicle trajectories and movement paths are tracked.
-6. Speed, acceleration, and direction are estimated.
-7. EasyOCR extracts vehicle number plates.
-8. Processed results are saved into a CSV report.
-9. Dashboard visualizes analytics and processed video output.
-
----
-
-# Dashboard Features
-
-* Vehicle type filtering
-* Plate number search
-* Vehicle speed analytics
-* Vehicle distribution charts
-* Fastest vehicle analysis
-* CSV report download
-* Processed video playback
-
----
-
-# Installation
-
-## Clone Repository
+Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/your-repository-name.git
-cd your-repository-name
+git clone https://github.com/sam-coolshrestha/summer_training.git
+cd summer_training
 ```
 
-## Install Dependencies
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -106,84 +81,51 @@ pip install -r requirements.txt
 
 ---
 
-# Run the Application
+#  Run the Application
 
-## Start Streamlit Dashboard
+Start Streamlit dashboard:
 
 ```bash
 streamlit run app.py
 ```
 
-## Process Uploaded Video
+Run traffic processing script manually:
 
-Upload a video from the dashboard and click:
-
-```text
-Process Video
+```bash
+python main.py
 ```
 
-The system will automatically:
+---
 
-* process the video,
-* generate analytics,
-* save CSV reports,
-* generate processed output video.
+# 📊 Dashboard Features
+
+* Total vehicle analytics
+* Average and maximum speed monitoring
+* Vehicle type distribution
+* Speed trend visualization
+* Overspeeding detection
+* Search vehicles by plate number
+* Downloadable CSV reports
+* Processed traffic video visualization
 
 ---
 
-# Output Files
+#  Future Improvements
 
-## CSV Report
-
-Generated at:
-
-```text
-outputs/vehicle_records.csv
-```
-
-Contains:
-
-* Vehicle ID
-* Vehicle Type
-* Speed
-* Direction
-* Acceleration
-* Plate Number
-* Timestamp
+* Lane detection and lane change analysis
+* Driving behavior profiling
+* Accident detection
+* Real-time webcam support
+* Traffic congestion prediction
+* Cloud database integration
+* Multi-camera monitoring
+* Advanced violation analytics
 
 ---
 
-## Processed Video
-
-Generated at:
-
-```text
-outputs/final_output.mp4
-```
-
-Includes:
-
-* Bounding boxes
-* Vehicle IDs
-* Speed visualization
-* Trajectory paths
-* Detection overlays
-
----
-
-# Future Improvements
-
-* Overspeed violation detection
-* Lane change detection
-* Traffic heatmaps
-* Live webcam support
-* Red-light violation detection
-* Helmet detection
-* Cloud deployment
-* Database integration
-
----
-
-# Author
+#  Author
 
 Samridhi Kulshrestha
+
+GitHub:
+https://github.com/sam-coolshrestha
