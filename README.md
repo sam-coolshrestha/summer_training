@@ -3,6 +3,7 @@
 
 AI-powered intelligent traffic surveillance and analytics system built using YOLOv8, EasyOCR, OpenCV, and Streamlit.
 
+
 ##  Live Demo
 
 https://intellitraffic-ai.streamlit.app/
