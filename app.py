@@ -5,6 +5,11 @@ import os
 
 st.title("Traffic Analytics Dashboard")
 
+# Ensure required folders exist (they may not be present on a fresh
+# deploy since empty folders aren't tracked by Git)
+os.makedirs("videos", exist_ok=True)
+os.makedirs("outputs", exist_ok=True)
+
 uploaded_file = st.file_uploader(
 "Upload Traffic Video",
 type=["mp4", "avi", "mov"]
@@ -31,7 +36,11 @@ if uploaded_file is not None:
             subprocess.run(["python", "main.py"])
             st.success("Video Processing Complete")
 
-df = pd.read_csv("outputs/vehicle_records.csv")
+if os.path.exists("outputs/vehicle_records.csv"):
+    df = pd.read_csv("outputs/vehicle_records.csv")
+else:
+    st.warning("No processed records yet. Upload a video and click 'Process Video' above.")
+    st.stop()
 
 vehicle_filter = st.sidebar.selectbox(
     "Select Vehicle Type",
@@ -101,11 +110,10 @@ st.line_chart(df["Speed"])
 
 st.subheader("Vehicle Records")
 
-fastest_vehicle = df.loc[df["Speed"].idxmax()]
-
-st.subheader("Fastest Vehicle")
-
-st.write(fastest_vehicle)
+if not df.empty:
+    fastest_vehicle = df.loc[df["Speed"].idxmax()]
+    st.subheader("Fastest Vehicle")
+    st.write(fastest_vehicle)
 
 st.dataframe(
 df.style.highlight_max(
@@ -123,8 +131,6 @@ st.download_button(
     mime="text/csv"
 )
 
-
-st.subheader("Processed Traffic Video")
 
 st.subheader("Processed Traffic Video")
 
