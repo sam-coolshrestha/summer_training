@@ -115,11 +115,7 @@ if not df.empty:
     st.subheader("Fastest Vehicle")
     st.write(fastest_vehicle)
 
-st.dataframe(
-df.style.highlight_max(
-subset=["Speed"]
-)
-)
+st.dataframe(df)
 
 
 csv = df.to_csv(index=False)
