@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import subprocess
 import os
+import sys
 
 st.title("Traffic Analytics Dashboard")
 
@@ -34,7 +35,7 @@ if uploaded_file is not None:
 
         with st.spinner("Processing video... Please wait"):
             result = subprocess.run(
-                ["python", "main.py"],
+                [sys.executable, "main.py"],
                 capture_output=True,
                 text=True
             )
