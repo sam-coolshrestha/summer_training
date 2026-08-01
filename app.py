@@ -33,8 +33,21 @@ if uploaded_file is not None:
     if st.button("Process Video"):
 
         with st.spinner("Processing video... Please wait"):
-            subprocess.run(["python", "main.py"])
+            result = subprocess.run(
+                ["python", "main.py"],
+                capture_output=True,
+                text=True
+            )
+
+        if result.returncode == 0:
             st.success("Video Processing Complete")
+        else:
+            st.error("main.py failed while processing the video. See details below.")
+            st.code(result.stderr or "No error output captured.", language="text")
+
+        if result.stdout:
+            with st.expander("Processing log (stdout)"):
+                st.code(result.stdout, language="text")
 
 if os.path.exists("outputs/vehicle_records.csv"):
     df = pd.read_csv("outputs/vehicle_records.csv")
