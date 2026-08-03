@@ -26,9 +26,10 @@ cap = cv2.VideoCapture(video_path)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
+total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
 out = cv2.VideoWriter(
-    "outputs/final_output.mp4",
+    "outputs/_raw_output.mp4",
     cv2.VideoWriter_fourcc(*'mp4v'),
     fps,
     (width, height)
@@ -48,6 +49,9 @@ crossed_ids = set()
 
 records = []
 
+display_id_counter = 0
+frame_index = 0
+
 while True:
 
     ret, frame = cap.read()
@@ -55,14 +59,23 @@ while True:
     if not ret:
         break
 
+    frame_index += 1
+    if frame_index % 30 == 0:
+        print(f"Processed frame {frame_index}/{total_frames}")
+
+    detect_frame = cv2.resize(frame, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
+
     # TRACK VEHICLES
     results = vehicle_model.track(
-        frame,
+        detect_frame,
         persist=True,
-        tracker="bytetrack.yaml"
+        tracker="bytetrack.yaml",
+        classes=[2, 3, 5, 7],
+        conf=0.4,
+        verbose=False
     )
 
-    annotated_frame = results[0].plot()
+    annotated_frame = frame.copy()
 
     cv2.line(
         annotated_frame,
@@ -84,6 +97,7 @@ while True:
         for i, (box, track_id) in enumerate(zip(boxes, ids)):
 
             x1,y1,x2,y2 = map(int, box)
+            x1, y1, x2, y2 = x1 * 4, y1 * 4, x2 * 4, y2 * 4
 
             cls_id = int(classes[i])
             vehicle_type = class_names[cls_id]
@@ -132,6 +146,23 @@ while True:
             if violation == "Overspeeding":
                 color = (0, 0, 255)
 
+            cv2.rectangle(
+                        annotated_frame,
+                        (x1, y1),
+                        (x2, y2),
+                        color,
+                        2
+                        )
+
+            cv2.putText(
+                        annotated_frame,
+                        f"{vehicle_type} {int(track_id)}",
+                        (x1, y1 - 35),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6,
+                        color,
+                        2
+                        )
 
             cv2.putText(
                         annotated_frame,
@@ -152,7 +183,12 @@ while True:
                     vehicle_crop = frame[y1:y2, x1:x2]
                     h, w, _ = vehicle_crop.shape
                     lower_half = vehicle_crop[h//2:h, :]
-                    ocr_result = reader.readtext(lower_half)
+                    gray = cv2.cvtColor(lower_half, cv2.COLOR_BGR2GRAY)
+                    upscaled = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+                    thresh = cv2.adaptiveThreshold(
+                        upscaled, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+                    )
+                    ocr_result = reader.readtext(thresh)
                     plate_text = "UNKNOWN"
 
                     if len(ocr_result) > 0:
@@ -165,7 +201,9 @@ while True:
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     print(f"Vehicle {track_id} | Plate: {plate_text} | Time: {timestamp}")
 
+                    display_id_counter += 1
                     records.append({
+                        "Display_ID": display_id_counter,
                         "Vehicle_ID": int(track_id),
                         "Vehicle_Type": vehicle_type,
                         "Speed": int(speed),
@@ -178,6 +216,16 @@ while True:
 
 cap.release()
 out.release()
+
+import subprocess
+try:
+    subprocess.run([
+        "ffmpeg", "-y", "-i", "outputs/_raw_output.mp4",
+        "-vcodec", "libx264", "-pix_fmt", "yuv420p",
+        "outputs/final_output.mp4"
+    ], check=True)
+except Exception as e:
+    print(f"ffmpeg re-encode failed: {e}")
 
 
 df = pd.DataFrame(records)
