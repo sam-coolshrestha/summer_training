@@ -10,13 +10,17 @@ Original file is located at
 
 from ultralytics import YOLO
 import cv2
-import easyocr
+# import easyocr
+from paddleocr import PaddleOCR
 import pandas as pd
 from datetime import datetime
+from collections import deque
 
 vehicle_model = YOLO("yolov8n.pt")
+plate_model = YOLO("license_plate_detector.pt")
 
-reader = easyocr.Reader(['en'])
+# reader = easyocr.Reader(['en'])
+ocr_engine = PaddleOCR(use_angle_cls=True, lang='en')
 
 
 video_path = "videos/uploaded_video.mp4"
@@ -38,12 +42,19 @@ out = cv2.VideoWriter(
 LINE_Y = 400
 SPEED_LIMIT=60
 
+# Re-measure these values for each new camera angle/video; this calibration is scene-specific.
+PIXEL_DISTANCE_REFERENCE = 200
+REAL_WORLD_DISTANCE_METERS = 10
+METERS_PER_PIXEL = REAL_WORLD_DISTANCE_METERS / PIXEL_DISTANCE_REFERENCE
+
 
 vehicle_positions = {}
 
 vehicle_paths  = {}
 
 previous_centers={}
+
+centroid_buffers = {}
 
 crossed_ids = set()
 
@@ -105,41 +116,60 @@ while True:
             center_x=int((x1 + x2) / 2)
             center_y=int((y1 + y2) / 2)
 
+            if track_id not in centroid_buffers:
+                centroid_buffers[track_id] = deque(maxlen=8)
+
+            centroid_buffers[track_id].append((center_x, center_y))
+
+            smoothed_center_x = int(
+                sum(point[0] for point in centroid_buffers[track_id]) / len(centroid_buffers[track_id])
+            )
+            smoothed_center_y = int(
+                sum(point[1] for point in centroid_buffers[track_id]) / len(centroid_buffers[track_id])
+            )
+
+            center_x = smoothed_center_x
+            center_y = smoothed_center_y
+
             speed=0
             violation="Normal"
             previous_y=vehicle_positions.get(track_id, center_y)
 
             vehicle_positions[track_id] = center_y
 
-            if track_id in previous_centers:
+            if len(centroid_buffers[track_id]) >= 3 and track_id in previous_centers:
                 prev_center_x, prev_center_y = previous_centers[track_id]
 
                 dx=center_x - prev_center_x
                 dy=center_y - prev_center_y
 
-                distance=(dx**2 + dy**2)**0.5
+                pixel_distance=(dx**2 + dy**2)**0.5
 
-                speed=distance * fps * 0.1
+                elapsed_time_seconds = 1 / fps
+                distance_meters = pixel_distance * METERS_PER_PIXEL
+                speed_mps = distance_meters / elapsed_time_seconds
+                speed = speed_mps * 3.6
 
                 if speed > SPEED_LIMIT:
                     violation="Overspeeding"
 
             previous_centers[track_id]=(center_x, center_y)
 
-            if track_id not in vehicle_paths:
-                vehicle_paths[track_id] = []
+            if len(centroid_buffers[track_id]) >= 3:
+                if track_id not in vehicle_paths:
+                    vehicle_paths[track_id] = []
 
-            vehicle_paths[track_id].append((center_x, center_y))
+                vehicle_paths[track_id].append((center_x, center_y))
 
-            for j in range(1, len(vehicle_paths[track_id])):
+                for j in range(1, len(vehicle_paths[track_id])):
 
-                cv2.line(
-                    annotated_frame,
-                    vehicle_paths[track_id][j - 1],
-                    vehicle_paths[track_id][j],
-                    (255, 0, 0),
-                    2
-                        )
+                    cv2.line(
+                        annotated_frame,
+                        vehicle_paths[track_id][j - 1],
+                        vehicle_paths[track_id][j],
+                        (255, 0, 0),
+                        2
+                            )
 
             color = (0, 255, 255)
 
@@ -181,21 +211,39 @@ while True:
                     crossed_ids.add(track_id)
 
                     vehicle_crop = frame[y1:y2, x1:x2]
-                    h, w, _ = vehicle_crop.shape
-                    lower_half = vehicle_crop[h//2:h, :]
-                    gray = cv2.cvtColor(lower_half, cv2.COLOR_BGR2GRAY)
-                    upscaled = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-                    thresh = cv2.adaptiveThreshold(
-                        upscaled, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-                    )
-                    ocr_result = reader.readtext(thresh)
                     plate_text = "UNKNOWN"
+                    plate_results = plate_model(vehicle_crop, conf=0.3, verbose=False)
+                    plate_boxes = plate_results[0].boxes.xyxy.cpu().numpy()
 
-                    if len(ocr_result) > 0:
+                    if len(plate_boxes) == 0:
+                        plate_text = "No plate detected"
+                    else:
+                        ocr_texts = []
 
-                        # Take longest detected text
-                        texts = [r[1] for r in ocr_result]
-                        plate_text = max(texts, key=len)
+                        for plate_box in plate_boxes:
+                            px1, py1, px2, py2 = map(int, plate_box)
+                            plate_crop = vehicle_crop[py1:py2, px1:px2]
+
+                            if plate_crop.size == 0:
+                                continue
+
+                            gray = cv2.cvtColor(plate_crop, cv2.COLOR_BGR2GRAY)
+                            upscaled = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+                            thresh = cv2.adaptiveThreshold(
+                                upscaled, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+                            )
+                            ocr_result = ocr_engine.ocr(thresh, cls=True)
+
+                            if ocr_result and ocr_result[0]:
+
+                                for line in ocr_result[0]:
+                                    text, confidence = line[1]
+
+                                    if confidence >= 0.5:
+                                        ocr_texts.append(text)
+
+                        if len(ocr_texts) > 0:
+                            plate_text = max(ocr_texts, key=len)
 
 
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

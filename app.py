@@ -76,6 +76,9 @@ if plate_search:
         )
     ]
 
+if "Display_ID" in df.columns:
+    df = df[["Display_ID"] + [col for col in df.columns if col != "Display_ID"]]
+
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 with col1:
@@ -148,8 +151,16 @@ video_path = "outputs/final_output.mp4"
 
 if os.path.exists(video_path):
 
-    video_file = open(video_path, "rb")
-    st.video(video_file.read())
+    with open(video_path, "rb") as video_file:
+        st.video(video_file.read())
+
+    with open(video_path, "rb") as video_file:
+        st.download_button(
+            label="Download Processed Video",
+            data=video_file.read(),
+            file_name="processed_traffic_video.mp4",
+            mime="video/mp4"
+        )
 
 else:
     st.warning("No processed video available yet.")

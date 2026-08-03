@@ -1,3 +1,2 @@
 Display_ID,Vehicle_ID,Vehicle_Type,Speed,Violation,Plate_Number,Timestamp
-1,3,bus,5,Normal,UNKNOWN,2026-08-03 21:07:38
-2,53,car,161,Overspeeding,UNKNOWN,2026-08-03 21:07:41
+1,53,car,54,Normal,No plate detected,2026-08-03 22:55:23
